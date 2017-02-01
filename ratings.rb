@@ -10,7 +10,6 @@ $end_of_line = 80000
 class Ratings
   #loads the u.base file to data structure of array of hash
   def load_data(input_file)
-    user_id = []
     movie_rating = Hash.new
     count = 1
     line_num = 0

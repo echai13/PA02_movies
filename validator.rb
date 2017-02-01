@@ -11,6 +11,7 @@ $test_ratings = Ratings.new
 $num_correct = 0
 $num_wrong = 0
 $rating_one_away = 0
+$end_of_line = 20000
 $avg = 0.0
 $stats = 0.0
 
@@ -49,6 +50,7 @@ class Validator
     puts "Average: #{$avg}, Standard Deviation: #{$stats}"
   end
 
+  def load_data(input_file)
   #Load u.test into data structure to see which users need prediction
     movie_rating = Hash.new
     count = 1
@@ -64,16 +66,13 @@ class Validator
         movie_rating = Hash.new
         movie_rating[data_row[1]] = data_row[2]
         count += 1
-        if line_num == 20000
-          puts "Enter"
+        if line_num == $end_of_line
           $test_set.push({})
           $test_set.push(movie_rating)
         end
 
       end
     end
-    puts $test_set
-    puts "done with adding data in validator"
   end
 
   #add ratings to array and keep track of corrects, wrongs, and close guesses
