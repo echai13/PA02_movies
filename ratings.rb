@@ -40,7 +40,6 @@ class Ratings
   def predict(user, movie)
     list = most_similar(user) #array of similar users
     done = true
-    count = 0
     user_predicted_rating = 0;
 
     #see which user has seen the movie
@@ -61,7 +60,6 @@ class Ratings
 #in movie preference between user1 and user2 (where higher
 #numbers indicate greater similarity)
   def similarity(user1, user2)
-    count = 0
     similar_movies_avg = []
 
 #fill in user1_data and user2_data
@@ -74,7 +72,7 @@ class Ratings
 
     #find average
      return similar_movies_avg.inject{ |sum, el| sum + el }.to_f / similar_movies_avg.size
-   end
+  end
 
 
 #From PA01_Movies
@@ -93,8 +91,8 @@ class Ratings
         similar_users[user] = num
       end
     end
-    
-    $similarity_list[u] = (Hash[similar_users.sort_by {|k,v| v}.reverse]).keys
+
+    $similarity_list[u] = (Hash[similar_users.sort_by {|_k,v| v}.reverse]).keys
     return $similarity_list[u]
   end
 end
