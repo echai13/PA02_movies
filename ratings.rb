@@ -1,26 +1,59 @@
 #Erica Chai
 #PA02 Movies
 
-#contains one of the files of ratings, u.data, or u1.test or u1.base etc.
-#Knows how to read the file while analyzing what it sees. Importantly it has
-#a method predict(user, movie) which will generate a prediction, based on that
-#file, of what rating a user would give to a movie.
+#takes in u.base file and used as training set
+$similarity_list = Hash.new
+$unique_user_data = []
 
 class Ratings
+  #Perhaps loads file in another class? This should be file of 20,000 records
+  def load_data(input_file)
+    user_id = []
+    movie_rating = Hash.new
+    count = 1
+    line_num = 0
 
-  
+    File.foreach("#{input_file}") do |line|
+      line_num += 1
+      data_row = line.split(' ')
+      user_id.push(data_row[0])
+
+      if data_row[0].to_i == count.to_i
+        movie_rating[data_row[1]] = data_row[2]
+      end
+      if data_row[0].to_i != count.to_i || line_num == 80000
+        $unique_user_data.push(movie_rating)
+        movie_rating = Hash.new
+        movie_rating[data_row[1]] = data_row[2]
+        count += 1
+      end
+    end
+    $unique_user_id = user_id.uniq
+
+    #$unique_user_id = user_id.uniq
+    puts "done with ratings load_data"
+    puts $unique_user_data.length
+
+  end
+
 
   def predict(user, movie)
-    list = most_similar(user) #list of similar users to user who have seen movie
+    list = most_similar(user) #array of similar users
+    done = true
+    count = 0
+    user_predicted_rating = 0;
 
-    list.each do |user|
+    #see which user has seen the movie
+    while done && !list.empty?
+      first_user = list.shift #user similar to u
 
-
-#checks which users have seen the movie
-  def watched_movie
-
-
-
+      if $unique_user_data[first_user.to_i - 1].has_key?(movie)
+        user_predicted_rating = $unique_user_data[first_user.to_i - 1][movie]
+        return user_predicted_rating
+      end
+    end
+    return user_predicted_rating
+  end
 
 
 #From PA01_Movies:
@@ -28,28 +61,15 @@ class Ratings
 #in movie preference between user1 and user2 (where higher
 #numbers indicate greater similarity)
   def similarity(user1, user2)
-    #find all movies watched by user1 and user2
-    @user1_data = Hash.new #movieId -> rating
-    @user2_data = Hash.new #movieId -> rating
     count = 0
     similar_movies_avg = []
 
 #fill in user1_data and user2_data
-    $data['user_id'].each do |user|
-      if user.to_i == user1.to_i
-        @user1_data[$data['movie_id'].fetch(count)] = $data['rating'].fetch(count)
-      elsif user.to_i == user2.to_i
-        @user2_data[$data['movie_id'].fetch(count)] = $data['rating'].fetch(count)
-      end
-      count += 1
-    end
-
 #find similar watched movies, remove differences in both lists
-    @user1_data.each_key {|movieId, rating|
-      if @user2_data.has_key?(movieId)
-        similar_movies_avg.push((rating.to_i - @user2_data[movieId].to_i).abs)
+    $unique_user_data[user1.to_i - 1].each_key {|movieId, rating|
+      if $unique_user_data[user2.to_i - 1].has_key?(movieId)
+        similar_movies_avg.push((rating.to_i - $unique_user_data[user2.to_i - 1][movieId].to_i).abs)
       end
-      #puts similar_movies_avg
     }
 
     #find average
@@ -58,16 +78,22 @@ class Ratings
 
 
 #From PA01_Movies
-#this return a list of users whose tastes are most similar
-#to the tastes of user u
+#this return a hash of users whose tastes are most similar
+#to the tastes of user u and their similarity score in descending order
   def most_similar(u)
-    similar_users = []
+
+    if $similarity_list.any? && $similarity_list.has_key?(u)
+      return $similarity_list[u]
+    end
+
+    similar_users = Hash.new
     $unique_user_id.each do |user|
       num = similarity(u, user)
-      if num >= 4
-        similar_users.push(user)
+      if num >= 3.0
+        similar_users[user] = num
       end
     end
-    return similar_users
+    $similarity_list[u] = (Hash[similar_users.sort_by {|k,v| v}.reverse]).keys
+    return $similarity_list[u]
   end
 end
