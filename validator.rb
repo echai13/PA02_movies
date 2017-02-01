@@ -1,13 +1,18 @@
+#Erica Chai
+#PA02_Movies
+
 require "./ratings.rb"
 require 'descriptive_statistics/safe'
 
 $test_set = []
-#$unique_user_id = []
+$array_of_predictions = []
 $test_ratings = Ratings.new
 
 $num_correct = 0
 $num_wrong = 0
 $rating_one_away = 0
+$avg = 0.0
+$stats = 0.0
 
 #Has one important method, validate, which runs through
 #all the entries in the test set and see what ratings would be predicted vs.
@@ -21,28 +26,30 @@ class Validator
     self.run_test()
   end
 
-
+  #calls on Ratings class to predict the ratings for validation
   def run_test
-    puts $test_set
     count = 0
     #puts $test_set
     while count <= 460
       if $test_set[count].any?
         $test_set[count].each do |movie, actual_rating|
           predicted_rating = $test_ratings.predict(count + 1, movie)
+          puts "Done predicting..."
           #puts "#{count + 1} and #{predicted_rating} and #{movie}"
-          validate(predicted_rating, actual_rating)
+          validate(predicted_rating.to_f, actual_rating.to_f)
         end
       end
       count += 1
-      puts "Number of correct: #{$num_correct}, Number of wrong: #{$num_wrong}, Number of one aways: #{$rating_one_away}"
     end
 
+    $avg = DescriptiveStatistics.mean($array_of_predictions)
+    $stats = DescriptiveStatistics::Stats.new($array_of_predictions).standard_deviation
 
+    puts "Number of correct: #{$num_correct}, Number of wrong: #{$num_wrong}, Number of \"close\" guesses: #{$rating_one_away}"
+    puts "Average: #{$avg}, Standard Deviation: #{$stats}"
   end
 
-  #Perhaps loads file in another class? This should be file of 20,000 records
-  def load_data(input_file)
+  #Load u.test into data structure to see which users need prediction
     movie_rating = Hash.new
     count = 1
     line_num = 0
@@ -58,22 +65,21 @@ class Validator
         movie_rating[data_row[1]] = data_row[2]
         count += 1
         if line_num == 20000
+          puts "Enter"
           $test_set.push({})
-          $test_set.push(data_row[0])
+          $test_set.push(movie_rating)
         end
-        puts count
+
       end
     end
+    puts $test_set
     puts "done with adding data in validator"
   end
 
-
+  #add ratings to array and keep track of corrects, wrongs, and close guesses
   def validate(predicted, actual)
-    avg = DescriptiveStatistics.mean([predicted.to_i, actual.to_i])
-    stats = DescriptiveStatistics::Stats.new([predicted.to_i, actual.to_i])
-    sd = stats.standard_deviation
-
-    puts "Average: #{avg}, SD: #{sd}"
+    $array_of_predictions.push(predicted)
+    $array_of_predictions.push(actual)
 
     if predicted.to_i == actual.to_i
       $num_correct += 1

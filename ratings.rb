@@ -4,9 +4,11 @@
 #takes in u.base file and used as training set
 $similarity_list = Hash.new
 $unique_user_data = []
+$number_of_users = 943
+$end_of_line = 80000
 
 class Ratings
-  #Perhaps loads file in another class? This should be file of 20,000 records
+  #loads the u.base file to data structure of array of hash
   def load_data(input_file)
     user_id = []
     movie_rating = Hash.new
@@ -16,27 +18,21 @@ class Ratings
     File.foreach("#{input_file}") do |line|
       line_num += 1
       data_row = line.split(' ')
-      user_id.push(data_row[0])
 
       if data_row[0].to_i == count.to_i
         movie_rating[data_row[1]] = data_row[2]
       end
-      if data_row[0].to_i != count.to_i || line_num == 80000
+      if data_row[0].to_i != count.to_i || line_num == $end_of_line
         $unique_user_data.push(movie_rating)
         movie_rating = Hash.new
         movie_rating[data_row[1]] = data_row[2]
         count += 1
       end
     end
-    $unique_user_id = user_id.uniq
-
-    #$unique_user_id = user_id.uniq
-    puts "done with ratings load_data"
-    puts $unique_user_data.length
 
   end
 
-
+#predicts the rating a user would give to a movie
   def predict(user, movie)
     list = most_similar(user) #array of similar users
     done = true
@@ -62,14 +58,13 @@ class Ratings
   def similarity(user1, user2)
     similar_movies_avg = []
 
-#fill in user1_data and user2_data
-#find similar watched movies, remove differences in both lists
+  #fill in user1_data and user2_data
+  #find similar watched movies, remove differences in both lists
     $unique_user_data[user1.to_i - 1].each_key {|movieId, rating|
       if $unique_user_data[user2.to_i - 1].has_key?(movieId)
         similar_movies_avg.push((rating.to_i - $unique_user_data[user2.to_i - 1][movieId].to_i).abs)
       end
     }
-
     #find average
      return similar_movies_avg.inject{ |sum, el| sum + el }.to_f / similar_movies_avg.size
   end
@@ -85,9 +80,9 @@ class Ratings
     end
 
     similar_users = Hash.new
-    $unique_user_id.each do |user|
+    for user in 1..$number_of_users.to_i do
       num = similarity(u, user)
-      if num >= 3.0
+      if num >= 3.0 #similarity checkpoint
         similar_users[user] = num
       end
     end
