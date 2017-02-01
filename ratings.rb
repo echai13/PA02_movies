@@ -93,6 +93,7 @@ class Ratings
         similar_users[user] = num
       end
     end
+    
     $similarity_list[u] = (Hash[similar_users.sort_by {|k,v| v}.reverse]).keys
     return $similarity_list[u]
   end

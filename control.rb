@@ -5,10 +5,9 @@ require "./validator.rb"
 class Control
 
   def run
-    validator = Validator.new
+    Validator.new
   end
 
 end
 
-start = Control.new
-start.run()
+Control.new.run
